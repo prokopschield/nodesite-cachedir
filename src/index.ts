@@ -1,4 +1,4 @@
-import { encode } from 'doge-json';
+import { DonNode } from '@prokopschield/don';
 import fs from 'fs';
 import path from 'path';
 import { Lock } from 'ps-std';
@@ -27,8 +27,8 @@ export async function upload_blob(blob: Buffer | string): Promise<string> {
 	return promise;
 }
 
-export function upload_json(data: any): Promise<string> {
-	return upload_blob(encode(data));
+export function upload_don(data: any): Promise<string> {
+	return upload_blob(new DonNode(Object.entries(data)).fmt('\t'));
 }
 
 export const glock = new Lock();
@@ -108,7 +108,7 @@ export async function uploadLogic(
 
 			lock.unlock();
 
-			return upload_json(hashes);
+			return upload_don(hashes);
 		} else {
 			const promise = upload_blob(await fs.promises.readFile(filename));
 
@@ -124,10 +124,10 @@ export async function uploadLogic(
 		const promises = children.map(upload);
 		const hashes = await Promise.all(promises);
 
-		return upload_json(hashes);
+		return upload_don(hashes);
 	} else {
 		lock.unlock();
 
-		return upload_json(stats);
+		return upload_don(stats);
 	}
 }
